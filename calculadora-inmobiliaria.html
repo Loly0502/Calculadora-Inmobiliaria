@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculadora Inmobiliaria – Aurelia Pérez, Realtor & Notary</title>
+<meta name="description" content="Calculadora inmobiliaria gratuita: hipoteca, cap rate, NOI, flujo de caja y ROI (cash-on-cash). Hecha para compradores, vendedores e inversionistas.">
+<style>
+  :root{
+    --bg: #0f172a;        /* slate-900 */
+    --panel:#111827;      /* gray-900 */
+    --card:#111827;
+    --muted:#94a3b8;      /* slate-400 */
+    --text:#e5e7eb;       /* gray-200 */
+    --accent:#22c55e;     /* green-500 */
+    --accent-2:#38bdf8;   /* sky-400 */
+    --danger:#ef4444;
+    --ring:#334155;
+    --border:#1f2937;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    background: radial-gradient(1200px 800px at 100% -10%, #0b1220, var(--bg));
+    color: var(--text);
+    line-height:1.45;
+  }
+  .container{max-width:1100px;margin:0 auto;padding:24px}
+  header{
+    display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:18px
+  }
+  .brand{display:flex;gap:12px;align-items:center}
+  .logo{
+    width:40px;height:40px;border-radius:12px;background:
+      radial-gradient(120% 100% at 30% 20%, #a7f3d0, transparent 40%),
+      radial-gradient(120% 100% at 70% 80%, #93c5fd, transparent 40%),
+      linear-gradient(135deg,#0ea5e9,#22c55e);
+    box-shadow: 0 8px 24px rgba(34,197,94,.25), inset 0 0 0 1px rgba(255,255,255,.15);
+  }
+  h1{font-size:20px;margin:0}
+  .subtitle{color:var(--muted);font-size:13px;margin-top:2px}
+  .card{
+    background: rgba(17,24,39,.66);
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+  }
+  .grid{display:grid;grid-template-columns:1fr;gap:14px}
+  @media(min-width:980px){ .grid{grid-template-columns: 1.2fr .8fr } }
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  input[type="number"]{
+    width:100%;padding:12px 12px;border-radius:12px;border:1px solid var(--ring);
+    background:#0b1220;color:var(--text);outline:none;
+  }
+  input[type="number"]:focus{border-color:var(--accent-2);box-shadow:0 0 0 3px rgba(56,189,248,.15)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .muted{color:var(--muted)}
+  .badge{display:inline-block;font-size:12px;padding:4px 8px;border-radius:9999px;background:#052e1f;color:#86efac;border:1px solid #14532d}
+  .tabs{display:flex;gap:8px;margin:14px 0 12px}
+  .tab{
+    cursor:pointer;padding:10px 12px;border-radius:12px;border:1px solid var(--ring);color:var(--text);
+    background:#0b1220;font-size:14px;user-select:none;
+  }
+  .tab.active{border-color:var(--accent);box-shadow:0 0 0 2px rgba(34,197,94,.2) inset}
+  .section{display:none}
+  .section.active{display:block}
+  .results{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .kpi{
+    background:linear-gradient(180deg, rgba(34,197,94,.06), rgba(0,0,0,.0));
+    border:1px solid var(--ring); border-radius:14px;padding:12px
+  }
+  .kpi h3{margin:0 0 8px 0;font-size:13px;color:var(--muted)}
+  .kpi .big{font-size:22px;font-weight:700}
+  .footnote{font-size:12px;color:var(--muted)}
+  .hr{height:1px;background:linear-gradient(90deg, transparent, #1f2a3a, transparent);margin:12px 0}
+  .small{font-size:12px}
+  .btn{
+    display:inline-block;border:1px solid var(--ring);background:#0b1220;padding:10px 12px;border-radius:12px;
+    color:var(--text);cursor:pointer;
+  }
+  .btn:hover{border-color:var(--accent-2)}
+  .right{display:flex;gap:10px;align-items:center;justify-content:flex-end}
+  .hl{color:#86efac}
+  .credits{margin-top:16px;font-size:12px;color:var(--muted)}
+  .list{margin:0;padding-left:18px}
+</style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Calculadora Inmobiliaria</h1>
+          <div class="subtitle">Hipoteca • Cap Rate • NOI • ROI (cash-on-cash)</div>
+        </div>
+      </div>
+      <div class="right">
+        <span class="badge">Aurelia Pérez — Realtor & Notary</span>
+        <button id="btnReset" class="btn" title="Reiniciar">Reiniciar</button>
+      </div>
+    </header>
+
+    <div class="card">
+      <div class="tabs">
+        <button class="tab active" data-tab="hipoteca">Hipoteca</button>
+        <button class="tab" data-tab="renta">Análisis de Renta (Cap/ROI)</button>
+      </div>
+
+      <!-- Hipoteca -->
+      <section class="section active" id="hipoteca">
+        <div class="grid">
+          <div>
+            <div class="row">
+              <div>
+                <label>Precio de compra ($)</label>
+                <input type="number" id="h_price" min="0" step="1000" value="350000">
+              </div>
+              <div>
+                <label>Enganche / Down payment (%)</label>
+                <input type="number" id="h_down_pct" min="0" max="100" step="0.1" value="20">
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label>Tasa anual (%)</label>
+                <input type="number" id="h_rate" min="0" step="0.01" value="6.75">
+              </div>
+              <div>
+                <label>Plazo (años)</label>
+                <input type="number" id="h_years" min="1" step="1" value="30">
+              </div>
+            </div>
+            <div class="row-3">
+              <div>
+                <label>Impuesto predial anual ($)</label>
+                <input type="number" id="h_tax_year" min="0" step="100" value="4800">
+              </div>
+              <div>
+                <label>Seguro anual ($)</label>
+                <input type="number" id="h_ins_year" min="0" step="50" value="1800">
+              </div>
+              <div>
+                <label>HOA mensual ($)</label>
+                <input type="number" id="h_hoa_mo" min="0" step="5" value="0">
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label>PMI anual (%) <span class="small muted">(si &lt; 20% de enganche)</span></label>
+                <input type="number" id="h_pmi_pct" min="0" step="0.01" value="0.5">
+              </div>
+              <div>
+                <label>¿Incluir PMI automáticamente?</label>
+                <input type="number" id="h_dummy" value="1" style="display:none">
+                <div class="small muted">Se calcula solo si el enganche &lt; 20%.</div>
+              </div>
+            </div>
+            <div class="hr"></div>
+            <button class="btn" id="calcHipoteca">Calcular</button>
+          </div>
+          <div>
+            <div class="results">
+              <div class="kpi">
+                <h3>Pago mensual (P &amp; I)</h3>
+                <div class="big" id="h_pmt">$0</div>
+              </div>
+              <div class="kpi">
+                <h3>Pago total mensual (con escrow)</h3>
+                <div class="big" id="h_total">$0</div>
+              </div>
+              <div class="kpi">
+                <h3>Préstamo</h3>
+                <div class="big" id="h_loan">$0</div>
+              </div>
+              <div class="kpi">
+                <h3>Escrow estimado</h3>
+                <div class="big" id="h_escrow">$0</div>
+              </div>
+            </div>
+            <div class="footnote">Fórmula PMT: tasa/12, n=meses. Si tasa = 0, se prorratea capital.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Renta / Inversión -->
+      <section class="section" id="renta">
+        <div class="grid">
+          <div>
+            <div class="row">
+              <div>
+                <label>Renta mensual ($)</label>
+                <input type="number" id="r_rent_mo" min="0" step="50" value="2600">
+              </div>
+              <div>
+                <label>Vacancia (%)</label>
+                <input type="number" id="r_vacancy_pct" min="0" max="100" step="0.5" value="5">
+              </div>
+            </div>
+            <div class="row-3">
+              <div>
+                <label>Gastos operativos mensuales ($)</label>
+                <input type="number" id="r_opex_mo" min="0" step="25" value="600">
+              </div>
+              <div>
+                <label>Precio de compra ($)</label>
+                <input type="number" id="r_price" min="0" step="1000" value="350000">
+              </div>
+              <div>
+                <label>Enganche (%)</label>
+                <input type="number" id="r_down_pct" min="0" max="100" step="0.1" value="20">
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label>Tasa anual (%)</label>
+                <input type="number" id="r_rate" min="0" step="0.01" value="6.75">
+              </div>
+              <div>
+                <label>Plazo (años)</label>
+                <input type="number" id="r_years" min="1" step="1" value="30">
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label>Costos de cierre ($)</label>
+                <input type="number" id="r_closing" min="0" step="100" value="8000">
+              </div>
+              <div>
+                <label>Rehab / Make-ready ($)</label>
+                <input type="number" id="r_rehab" min="0" step="100" value="0">
+              </div>
+            </div>
+            <div class="hr"></div>
+            <button class="btn" id="calcRenta">Calcular</button>
+          </div>
+          <div>
+            <div class="results">
+              <div class="kpi">
+                <h3>NOI anual</h3>
+                <div class="big" id="r_noi">$0</div>
+              </div>
+              <div class="kpi">
+                <h3>Cap Rate</h3>
+                <div class="big" id="r_cap">0%</div>
+              </div>
+              <div class="kpi">
+                <h3>Deuda anual (ADS)</h3>
+                <div class="big" id="r_ads">$0</div>
+              </div>
+              <div class="kpi">
+                <h3>Flujo anual</h3>
+                <div class="big" id="r_cashflow">$0</div>
+              </div>
+              <div class="kpi">
+                <h3>Cash-on-Cash ROI</h3>
+                <div class="big" id="r_coc">0%</div>
+              </div>
+              <div class="kpi">
+                <h3>Capital invertido</h3>
+                <div class="big" id="r_invested">$0</div>
+              </div>
+            </div>
+            <div class="footnote">
+              NOI = Renta Bruta * (1 - Vacancia) - Opex. <br>
+              Cap = NOI / Precio. <br>
+              ROI CoC = Flujo anual / Capital invertido (enganche + cierre + rehab).
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="credits">
+      <strong>Notas:</strong>
+      <ul class="list">
+        <li>Los resultados son estimados y no sustituyen asesoría financiera o legal. Consulta con Aurelia Pérez para orientación personalizada.</li>
+        <li>PMI se calcula solo si el enganche &lt; 20% y usaremos la tasa anual indicada (por defecto 0.5%).</li>
+        <li>Puedes enlazar esta página desde tu ebook (botón o QR). También puedes alojarla gratis en GitHub Pages.</li>
+      </ul>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const $ = (id) => document.getElementById(id);
+
+  const fmtMoney = (v) => {
+    if (!isFinite(v)) return "$0";
+    return v.toLocaleString('es-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
+  };
+  const fmtPct = (v) => isFinite(v) ? v.toLocaleString('es-US',{maximumFractionDigits:2}) + "%" : "0%";
+
+  function pmt(rate, nper, pv){
+    if (rate === 0) return -(pv / nper);
+    const r = rate;
+    return -(pv * r) / (1 - Math.pow(1 + r, -nper));
+  }
+
+  // Tabs
+  document.querySelectorAll('.tab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+      btn.classList.add('active');
+      const id = btn.dataset.tab;
+      $(id).classList.add('active');
+    });
+  });
+
+  // Hipoteca
+  function calcHipoteca(){
+    const price = +$('h_price').value||0;
+    const downPct = (+$('h_down_pct').value||0)/100;
+    const rate = (+$('h_rate').value||0)/100/12;
+    const years = +$('h_years').value||0;
+    const taxYear = +$('h_tax_year').value||0;
+    const insYear = +$('h_ins_year').value||0;
+    const hoaMo = +$('h_hoa_mo').value||0;
+    const pmiPct = (+$('h_pmi_pct').value||0)/100;
+
+    const loan = Math.max(price * (1 - downPct), 0);
+    const n = Math.max(years*12,1);
+    const p_i = -pmt(rate, n, loan); // monthly principal+interest
+    const escrow = (taxYear/12) + (insYear/12) + hoaMo;
+    const needPMI = (downPct < 0.20 && pmiPct > 0) ? (loan * pmiPct / 12) : 0;
+    const total = p_i + escrow + needPMI;
+
+    $('h_pmt').textContent = fmtMoney(p_i);
+    $('h_total').textContent = fmtMoney(total);
+    $('h_loan').textContent = fmtMoney(loan);
+    $('h_escrow').textContent = fmtMoney(escrow + needPMI);
+  }
+  $('calcHipoteca').addEventListener('click', calcHipoteca);
+  calcHipoteca();
+
+  // Renta / Inversión
+  function calcRenta(){
+    const rentMo = +$('r_rent_mo').value||0;
+    const vac = (+$('r_vacancy_pct').value||0)/100;
+    const opexMo = +$('r_opex_mo').value||0;
+    const price = +$('r_price').value||0;
+    const downPct = (+$('r_down_pct').value||0)/100;
+    const rate = (+$('r_rate').value||0)/100/12;
+    const years = +$('r_years').value||0;
+    const closing = +$('r_closing').value||0;
+    const rehab = +$('r_rehab').value||0;
+
+    const loan = Math.max(price * (1 - downPct), 0);
+    const n = Math.max(years*12,1);
+    const debtMo = -pmt(rate, n, loan);
+    const ads = debtMo * 12;
+
+    const grossYr = rentMo * 12;
+    const noi = (grossYr * (1 - vac)) - (opexMo * 12);
+    const cap = price > 0 ? (noi / price) * 100 : 0;
+
+    const invested = (price * downPct) + closing + rehab;
+    const cashflow = noi - ads;
+    const coc = invested > 0 ? (cashflow / invested) * 100 : 0;
+
+    $('r_noi').textContent = fmtMoney(noi);
+    $('r_cap').textContent = fmtPct(cap);
+    $('r_ads').textContent = fmtMoney(ads);
+    $('r_cashflow').textContent = fmtMoney(cashflow);
+    $('r_coc').textContent = fmtPct(coc);
+    $('r_invested').textContent = fmtMoney(invested);
+  }
+  $('calcRenta').addEventListener('click', calcRenta);
+  calcRenta();
+
+  // Reset to defaults
+  $('btnReset').addEventListener('click', ()=>{
+    document.querySelectorAll('input[type="number"]').forEach(inp=>{
+      const v = inp.getAttribute('value');
+      if (v !== null) inp.value = v;
+    });
+    calcHipoteca(); calcRenta();
+  });
+
+})();</script>
+</body>
+</html>
